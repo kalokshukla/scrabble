@@ -1,4 +1,4 @@
-from ps4a import *
+from scrabble_a import *
 import time
 
 def compChooseWord(hand, wordList, n):
