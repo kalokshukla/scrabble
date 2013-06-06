@@ -1,8 +1,16 @@
 import random
 import string
 
-VOWELS = 'aeiou'
-CONSONANTS = 'bcdfghjklmnpqrstvwxyz'
+SCRABBLE_DICTIONARY = { 'a': 9, 'b': 2, 'c': 2, 'd': 4, 'e': 12, 'f': 2, 'g': 3, 'h': 2, 'i': 9, 'j': 1, 'k': 1, 'l': 4, 'm': 2, 'n': 6, 'o': 8, 'p': 2, 'q': 1, 'r': 6, 's': 4, 't': 6, 'u': 4, 'v': 2, 'w': 2, 'x': 1, 'y': 2, 'z': 1}
+
+def dictionaryToString(dictionary):
+    dictionaryScrabble = ''
+    for letter in dictionary.keys():
+        for j in range(dictionary[letter]):
+             dictionaryScrabble += letter
+    return dictionaryScrabble
+
+SCRABBLE_LETTERS = dictionaryToString(SCRABBLE_DICTIONARY)
 HAND_SIZE = 7
 
 SCRABBLE_LETTER_VALUES = {
@@ -56,13 +64,12 @@ def getWordScore(word, n):
     n: integer (HAND_SIZE; i.e., hand size required for additional points)
     returns: int >= 0
     """
-    score = 0
-    for w in word:
-      score += SCRABBLE_LETTER_VALUES[w]
-    score *= len(word)
+    #return sum([SCRABBLE_LETTER_VALUES[w] for w in word]) + 50 if len(word) == n else 0
+    score = sum([SCRABBLE_LETTER_VALUES[w] for w in word]) * len(word)
     if len(word) == n:
-      score += 50
-    return score
+        return score + 50
+    else:
+        return score
 
 
 def displayHand(hand):
@@ -77,18 +84,19 @@ def displayHand(hand):
 
     hand: dictionary (string -> int)
     """
+    displayedHand = ''
     for letter in hand.keys():
         for j in range(hand[letter]):
-             print letter,
-    print
+            displayedHand += letter + ' '
+    return displayedHand
 
 
-def displayHand2(hand):
-  displayed = ''
-  for letter in hand.keys():
-        for j in range(hand[letter]):
-             displayed += letter + ' '
-  return displayed
+def dictionaryToString(dictionary):
+    dictionaryScrabble = ''
+    for letter in dictionary.keys():
+        for j in range(dictionary[letter]):
+             dictionaryScrabble += letter
+    return dictionaryScrabble
 
 def dealHand(n):
     """
@@ -103,14 +111,9 @@ def dealHand(n):
     returns: dictionary (string -> int)
     """
     hand={}
-    numVowels = n / 3
 
-    for i in range(numVowels):
-        x = VOWELS[random.randrange(0,len(VOWELS))]
-        hand[x] = hand.get(x, 0) + 1
-
-    for i in range(numVowels, n):
-        x = CONSONANTS[random.randrange(0,len(CONSONANTS))]
+    for i in range(n):
+        x = SCRABBLE_LETTERS[random.randrange(0,len(SCRABBLE_LETTERS))]
         hand[x] = hand.get(x, 0) + 1
 
     return hand
@@ -134,19 +137,19 @@ def updateHand(hand, word):
     """
     hand_try = hand.copy()
     for w in word:
-      hand_try[w] -= 1
+        hand_try[w] -= 1
     return hand_try
 
 def isInHand(word, dictionary):
-  wordDict = getFrequencyDict(word)
-  number = 0
-  for w in word:
-    if dictionary.get(w, 0) >= wordDict[w]:
-      number += 1
-  return number == len(word)
+    wordDict = getFrequencyDict(word)
+    number = 0
+    for w in word:
+      if dictionary.get(w, 0) >= wordDict[w]:
+        number += 1
+    return number == len(word)
 
 def isInWordList(word, wordList):
-  return word in wordList
+    return word in wordList
 
 def isValidWord(word, hand, wordList):
     """
@@ -198,7 +201,7 @@ def playHand(hand, wordList, n):
 
     """
     def isHandEmpty(hand):
-      return sum(hand.values()) == 0
+        return sum(hand.values()) == 0
 
     totalScore = 0
     handed = hand.copy()
@@ -206,7 +209,7 @@ def playHand(hand, wordList, n):
         if calculateHandlen(handed) == 0:
             print "Run out of letters. Total score: " + str(totalScore) + " points."
             break
-        print "Current Hand:  " + displayHand2(hand)
+        print "Current Hand:  " + displayHand(handed)
 
         askInput = raw_input('Enter word, or a "." to indicate that you are finished: ')
 
@@ -223,7 +226,7 @@ def playHand(hand, wordList, n):
 
             else:
 
-                scored = getWordScore(askInput, n)
+                scored = getWordScore(askInput, HAND_SIZE)
                 totalScore += scored
                 print '"'+ askInput + '" ' + "earned " + str(scored) + " points. Total: " + str(totalScore) + " points\n"
 
@@ -244,20 +247,21 @@ def playGame(wordList):
     """
 
     hand = False
-    while True:
-      ans = raw_input("Enter n to deal a new hand, r to replay the last hand, or e to end game: ")
-      if ans == "n":
-        hand = dealHand(HAND_SIZE)
-        playHand(hand, wordList, HAND_SIZE)
-      elif ans == "r":
-        if hand:
-          playHand(hand, wordList, HAND_SIZE)
+    ans = ''
+    while not ans == "e":
+        ans = raw_input("Enter n to deal a new hand, r to replay the last hand, or e to end game: ")
+        if ans == "n":
+            hand = dealHand(HAND_SIZE)
+            playHand(hand, wordList, HAND_SIZE)
+        elif ans == "r":
+            if hand:
+                playHand(hand, wordList, HAND_SIZE)
+            else:
+                print "You have not played a hand yet. Please play a new hand first!"
+        elif ans == "e":
+            print "Goodbye :)"
         else:
-          print "You have not played a hand yet. Please play a new hand first!"
-      elif ans == "e":
-        break
-      else:
-        print "Invalid command."
+            print "Invalid command."
 
 if __name__ == '__main__':
     wordList = loadWords()
